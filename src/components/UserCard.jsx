@@ -43,4 +43,3 @@ function UserCard({ user, isFavorite, onToggleFavorite }) {
 }
 
 export default UserCard;
- 

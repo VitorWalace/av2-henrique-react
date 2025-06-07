@@ -4,27 +4,14 @@ import UserCard from "../components/UserCard";
 function Home() {
   const [users, setUsers] = useState([]);
   const [favorites, setFavorites] = useState(() => {
-    try {
-      const stored = localStorage.getItem("favoritos");
-      return stored ? JSON.parse(stored) : [];
-    } catch (error) {
-      console.error("Erro ao ler favoritos do localStorage:", error);
-      return [];
-    }
+    const stored = localStorage.getItem("favoritos");
+    return stored ? JSON.parse(stored) : [];
   });
 
-  const fetchUsers = async () => {
-    try {
-      const res = await fetch("https://randomuser.me/api/?results=12");
-      const data = await res.json();
-      if (data?.results) {
-        setUsers(data.results);
-      } else {
-        console.error("Resposta inesperada da API:", data);
-      }
-    } catch (error) {
-      console.error("Erro ao buscar usuários:", error);
-    }
+  const fetchUsers = () => {
+    fetch("https://randomuser.me/api/?results=12")
+      .then((res) => res.json())
+      .then((data) => setUsers(data.results));
   };
 
   useEffect(() => {
@@ -32,22 +19,20 @@ function Home() {
   }, []);
 
   useEffect(() => {
-    try {
-      localStorage.setItem("favoritos", JSON.stringify(favorites));
-    } catch (error) {
-      console.error("Erro ao salvar favoritos:", error);
-    }
+    localStorage.setItem("favoritos", JSON.stringify(favorites));
   }, [favorites]);
 
-  const toggleFavorite = (uuid) => {
-    setFavorites((prev) =>
-      prev.includes(uuid)
-        ? prev.filter((id) => id !== uuid)
-        : [...prev, uuid]
-    );
-  };
+  const toggleFavorite = (user) => {
+    const uuid = user?.login?.uuid;
+    if (!uuid) return;
 
-  const isUserFavorite = (uuid) => favorites.includes(uuid);
+    setFavorites((prev) => {
+      const exists = prev.some((fav) => fav?.login?.uuid === uuid);
+      return exists
+        ? prev.filter((fav) => fav?.login?.uuid !== uuid)
+        : [...prev, user];
+    });
+  };
 
   return (
     <div className="p-6 min-h-screen bg-gradient-to-br from-purple-200 via-pink-100 to-blue-100">
@@ -72,22 +57,16 @@ function Home() {
       </div>
 
       <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {users.length > 0 ? (
-          users.map((user) =>
-            user?.login?.uuid ? (
-              <UserCard
-                key={user.login.uuid}
-                user={user}
-                isFavorite={isUserFavorite(user.login.uuid)}
-                onToggleFavorite={() => toggleFavorite(user.login.uuid)}
-              />
-            ) : null
-          )
-        ) : (
-          <p className="text-center text-gray-700 col-span-full">
-            Carregando usuários ou nenhum disponível.
-          </p>
-        )}
+        {users.map((user, index) => (
+          <UserCard
+            key={index}
+            user={user}
+            isFavorite={favorites.some(
+              (fav) => fav?.login?.uuid === user?.login?.uuid
+            )}
+            onToggleFavorite={() => toggleFavorite(user)}
+          />
+        ))}
       </div>
     </div>
   );

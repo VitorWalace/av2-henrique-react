@@ -6,43 +6,48 @@ function Favoritos() {
 
   useEffect(() => {
     const stored = localStorage.getItem("favoritos");
-    if (stored) {
-      setFavorites(JSON.parse(stored));
-    }
+    setFavorites(stored ? JSON.parse(stored) : []);
   }, []);
 
   const toggleFavorite = (user) => {
-    const updated = favorites.filter(fav => fav.login.uuid !== user.login.uuid);
+    const uuid = user?.login?.uuid;
+    if (!uuid) return;
+
+    const updated = favorites.filter((fav) => fav?.login?.uuid !== uuid);
     setFavorites(updated);
     localStorage.setItem("favoritos", JSON.stringify(updated));
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">Meus Favoritos 💖</h1>
+    <div className="p-6 min-h-screen bg-gradient-to-br from-yellow-100 via-pink-100 to-purple-100">
+      <h1 className="text-4xl font-extrabold mb-8 text-center text-pink-700 drop-shadow-sm">
+        Meus Favoritos 💖
+      </h1>
 
-      {favorites.length === 0 ? (
-        <p className="text-center text-gray-600">Você ainda não favoritou ninguém.</p>
-      ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {favorites.map((user, index) => (
+      <div className="flex justify-center mb-8">
+        <a
+          href="/"
+          className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-6 py-3 rounded-full shadow-md hover:scale-105 hover:shadow-xl transition-transform"
+        >
+          🔙 Voltar
+        </a>
+      </div>
+
+      <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {favorites.length > 0 ? (
+          favorites.map((user, index) => (
             <UserCard
               key={index}
               user={user}
               isFavorite={true}
               onToggleFavorite={() => toggleFavorite(user)}
             />
-          ))}
-        </div>
-      )}
-
-      <div className="flex justify-center mt-8">
-        <a
-          href="/"
-          className="bg-blue-500 text-white px-6 py-2 rounded-full shadow hover:shadow-lg hover:brightness-110 transition-all"
-        >
-          ← Voltar para Home
-        </a>
+          ))
+        ) : (
+          <p className="text-center text-gray-600 col-span-full">
+            Você ainda não tem favoritos. 💔
+          </p>
+        )}
       </div>
     </div>
   );
